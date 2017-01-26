@@ -25,4 +25,10 @@ object Foochurs {
     Thread.sleep(3000)
     a + b
   }
+
+  def additionError(a: Int, b: Int): Int = {
+    println(s"failing to add $a & $b")
+    Thread.sleep(2000)
+    throw new RuntimeException(s"Couldn't add $a & $b!")
+  }
 }
