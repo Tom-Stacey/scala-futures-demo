@@ -16,34 +16,67 @@ object Foochurs {
     val second = Future {
       slowAddition(2, 2)
     }
-
-    first.onComplete {
-      case Success(firstResult) => println(s"first: $firstResult")
-      case Failure(ex) => println(s"Failed! Reason: ${ex.getMessage}")
+    val fourth = Future {
+      additionError(4, 4)
     }
 
-    second.onSuccess {
-      case secondResult => println(s"second: $secondResult")
-    }
-    second.onFailure {
-      case ex => println(s"Failed! Reason: ${ex.getMessage}")
-    }
-
-    third.map {
-      case thirdResult => println(s"third: $thirdResult")
+    val fMap = first.flatMap {
+      case result1 => second.flatMap {
+        case result2 => third.map { //fourth.map {
+          case result3 => result1 + result2 + result3
+        }
+      }
     } recover {
+      case ex => 4392834
+    }
+
+    fMap.onSuccess {
+      case total => println(s"3 more than $total is ${total + 3}")
+    }
+
+    val forComp = for {
+      a <- first
+      b <- second
+      c <- third
+    } yield {
+      a + b + c
+    }
+
+    forComp.onSuccess {
+      case grandTotal => println(s"Grand total: $grandTotal")
+    }
+
+    val slowerForComp = for {
+      a <- first
+      b <- second
+      c <- futureAddition(a, b)
+    } yield {
+      a + b + c
+    }
+
+    slowerForComp.onSuccess {
+      case grandTotal => println(s"takes 4 seconds to add $grandTotal")
+    }
+
+    fourth.onFailure {
       case ex => println(s"Failed! Reason: ${ex.getMessage}")
     }
 
-    Thread.sleep(4000)
+    Thread.sleep(3000)
 
   }
 
 
+  def futureAddition(a: Int, b: Int): Future[Int] = Future {
+    println(s"future adding $a & $b")
+    Thread.sleep(2000)
+    a + b
+  }
+
   def slowAddition(a: Int, b: Int): Int = {
-      println(s"slowly adding $a & $b")
-      Thread.sleep(2000)
-      a + b
+    println(s"slowly adding $a & $b")
+    Thread.sleep(2000)
+    a + b
   }
 
   def slowerAddition(a: Int, b: Int): Int = {
